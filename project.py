@@ -27,6 +27,21 @@ loading_background = pygame.transform.scale(loading_background, (screen_width, s
 menu_background = pygame.image.load('menu.png')
 menu_background = pygame.transform.scale(menu_background, (screen_width, screen_height))
 
+#scaling for transition images
+curtain1 = pygame.image.load('menu.png')
+curtain2 = pygame.image.load('transition.png')
+curtain3 = pygame.image.load('no mic.png')
+
+curtain1 = pygame.transform.scale(curtain1, (screen_width, screen_height))
+curtain2 = pygame.transform.scale(curtain2, (screen_width, screen_height))
+curtain3 = pygame.transform.scale(curtain3, (screen_width, screen_height))
+#frames for curtain transition
+curtain_frames = [
+    curtain1,
+    curtain2,
+    curtain3
+]
+
 #loading joke bank
 startup_jokes1 = [
     "Six?",
@@ -108,12 +123,44 @@ def text_button(text, x, y, font, colour, hover_colour, action=None):
     text_surface = font.render(text, True, colour)
     text_rect = text_surface.get_rect(center=(x, y))
 
+    # check hover
     if text_rect.collidepoint(mouse):
         text_surface = font.render(text, True, hover_colour)
+        # detect left click
         if click[0] == 1 and action is not None:
-            return True
+            pygame.time.delay(150)  # small delay to prevent multiple triggers
+            action()  # <-- actually calls the function here
 
     screen.blit(text_surface, text_rect)
+
+#function for transition screen using curtains
+def curtain_transition(next_screen):
+    # Closing
+    for frame in curtain_frames:
+        screen.blit(frame, (0, 0))
+        pygame.display.flip()
+        pygame.time.delay(500)  # controls the speed
+
+    # Opening (reverse order)
+    for frame in reversed(curtain_frames):
+        screen.blit(frame, (0, 0))
+        pygame.display.flip()
+        pygame.time.delay(500)
+
+    # Switch to the new scene
+    next_screen()
+
+    # Closing
+    for frame in curtain_frames:
+        screen.blit(frame, (0, 0))
+        pygame.display.flip()
+        pygame.time.delay(500)  # controls the speed
+
+    # Opening (reverse order)
+    for frame in reversed(curtain_frames):
+        screen.blit(frame, (0, 0))
+        pygame.display.flip()
+        pygame.time.delay(500)
 
 def main_menu():
     menu_running = True
@@ -130,7 +177,7 @@ def main_menu():
         #button positions on screen
         text_button("Play", screen_width//2, screen_height * 2//4, font, YELLOW, LESS_PALE_YELLOW, play_game)
         text_button("Tutorial", screen_width//2, screen_height * 2.5//4, font, YELLOW, LESS_PALE_YELLOW, tutorial)
-        text_button("Settings", screen_width//2, screen_height * 3//4, font, YELLOW, LESS_PALE_YELLOW, settings)
+        text_button("Settings", screen_width//2, screen_height * 3//4, font, YELLOW, LESS_PALE_YELLOW, lambda: curtain_transition(settings))
         
 
         joke_w = screen_width // 2 - menu_joke.get_width() // 2
@@ -151,7 +198,37 @@ def tutorial():
     print("Tutorial button clicked")
 
 def settings():
-    print("Settings button clicked")
+    settings_running = True
+    while settings_running:
+        screen.blit(menu_background, (0, 0))
+
+        settings_text = header_font.render("Settings", True, YELLOW)
+        back_text = smaller_font.render("Back", True, YELLOW)
+
+        ##title position on screen
+        title_w = screen_width // 2 - settings_text.get_width() // 2
+        title_h = screen_height // 4 - settings_text.get_height() // 2
+        back_w = 20
+        back_h = 20
+
+        # draw text
+        screen.blit(settings_text, (title_w, title_h))
+        screen.blit(back_text, (back_w, back_h))
+
+        pygame.display.flip()
+
+        # event loop
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = event.pos
+                # Back button click detection
+                back_rect = back_text.get_rect(topleft=(back_w, back_h))
+                if back_rect.collidepoint(mouse_x, mouse_y):
+                    settings_running = False  # return to main menu
 
 loading_screen()
 main_menu()
