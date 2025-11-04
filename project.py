@@ -5,6 +5,18 @@ import random
 
 pygame.init()
 
+#music
+pygame.mixer.music.load('bg music.mp3')
+pygame.mixer.music.set_volume(0.5)  # range is 0.0 to 1.0
+pygame.mixer.music.play(-1)
+
+#volume for music
+master_volume = 0.5
+bg_music_volume = 0.5
+event_volume = 0.5
+audience_volume = 0.5
+
+
 # screen
 screen_width = 800
 screen_height = 600
@@ -15,6 +27,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 YELLOW = (255, 255, 191)
 LESS_PALE_YELLOW = (255, 255, 150)
+
 
 # retro font
 font = pygame.font.Font('font.otf', 40)
@@ -58,6 +71,22 @@ startup_jokes2 = [
     "Because it had too many problems.",
     "To get to the other side!"
 ]
+
+#sliders for volume
+def draw_slider(x, y, width, height, value, label):
+    # Draw label
+    text = smaller_font.render(f"{label}: {int(value * 100)}%", True, YELLOW)
+    screen.blit(text, (x, y - 40))
+    
+    # Slider bar
+    pygame.draw.rect(screen, YELLOW, (x, y, width, height), 3)
+    
+    # Handle position
+    handle_x = x + int(value * width)
+    pygame.draw.circle(screen, YELLOW, (handle_x, y + height // 2), 10)
+
+    # Return handle rect (for mouse detection)
+    return pygame.Rect(handle_x - 10, y, 20, height)
 
 # select random joke
 joke_index = random.randint(0, len(startup_jokes1) - 1)
@@ -198,37 +227,73 @@ def tutorial():
     print("Tutorial button clicked")
 
 def settings():
+    global master_volume, bg_music_volume, event_music_volume, audience_volume
+
+    dragging = None
     settings_running = True
+    slider_width = 300
+    slider_height = 10
+    slider_x = screen_width // 2 - slider_width // 2  # center horizontally
+
     while settings_running:
         screen.blit(menu_background, (0, 0))
 
+        # title + back button
         settings_text = header_font.render("Settings", True, YELLOW)
         back_text = smaller_font.render("Back", True, YELLOW)
 
-        ##title position on screen
         title_w = screen_width // 2 - settings_text.get_width() // 2
-        title_h = screen_height // 4 - settings_text.get_height() // 2
+        title_h = 60
         back_w = 20
         back_h = 20
 
-        # draw text
         screen.blit(settings_text, (title_w, title_h))
         screen.blit(back_text, (back_w, back_h))
 
+        # --- draw sliders ---
+        bg_rect = draw_slider(slider_x, 250, slider_width, slider_height, bg_music_volume, "Background Music")
+        event_rect = draw_slider(slider_x, 350, slider_width, slider_height, event_volume, "Event Music")
+        audience_rect = draw_slider(slider_x, 450, slider_width, slider_height, audience_volume, "Audience")
+        master_rect = draw_slider(slider_x, 550, slider_width, slider_height, master_volume, "Master Volume")
+
         pygame.display.flip()
 
-        # event loop
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
-                # Back button click detection
                 back_rect = back_text.get_rect(topleft=(back_w, back_h))
                 if back_rect.collidepoint(mouse_x, mouse_y):
-                    settings_running = False  # return to main menu
+                    settings_running = False  # go back
+
+                elif bg_rect.collidepoint(mouse_x, mouse_y):
+                    dragging = 'bg'
+                elif event_rect.collidepoint(mouse_x, mouse_y):
+                    dragging = 'event'
+                elif audience_rect.collidepoint(mouse_x, mouse_y):
+                    dragging = 'audience'
+                elif master_rect.collidepoint(mouse_x, mouse_y):
+                    dragging = 'master'
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                dragging = None
+
+            elif event.type == pygame.MOUSEMOTION and dragging:
+                mouse_x = event.pos[0]
+                rel_x = max(0, min(mouse_x - slider_x, slider_width)) / slider_width
+                if dragging == 'bg':
+                    bg_music_volume = rel_x
+                    pygame.mixer.music.set_volume(bg_music_volume * master_volume)
+                elif dragging == 'event':
+                    event_music_volume = rel_x
+                elif dragging == 'audience':
+                    audience_volume = rel_x
+                elif dragging == 'master':
+                    master_volume = rel_x
+                    pygame.mixer.music.set_volume(bg_music_volume * master_volume)
 
 loading_screen()
 main_menu()
