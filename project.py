@@ -221,7 +221,9 @@ def main_menu():
                 menu_running = False
 
 def play_game():
-    print("Play Game button clicked")
+    gameplay_running = True
+    while gameplay_running:
+        screenblit(game_bg, (0, 0))
 
 def tutorial():
     print("Tutorial button clicked")
@@ -250,7 +252,7 @@ def settings():
         screen.blit(settings_text, (title_w, title_h))
         screen.blit(back_text, (back_w, back_h))
 
-        # --- draw sliders ---
+        #draw sliders 
         bg_rect = draw_slider(slider_x, 250, slider_width, slider_height, bg_music_volume, "Background Music")
         event_rect = draw_slider(slider_x, 350, slider_width, slider_height, event_volume, "Event Music")
         audience_rect = draw_slider(slider_x, 450, slider_width, slider_height, audience_volume, "Audience")
