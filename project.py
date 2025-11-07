@@ -39,6 +39,8 @@ loading_background = pygame.image.load('loading.png')
 loading_background = pygame.transform.scale(loading_background, (screen_width, screen_height))
 menu_background = pygame.image.load('menu.png')
 menu_background = pygame.transform.scale(menu_background, (screen_width, screen_height))
+game_bg = pygame.image.load('game bg.png')
+game_bg = pygame.transform.scale(game_bg, (screen_width, screen_height))
 
 #scaling for transition images
 curtain1 = pygame.image.load('menu.png')
@@ -222,8 +224,24 @@ def main_menu():
 
 def play_game():
     gameplay_running = True
+
+    player_img = pygame.image.load('player.png')
+    player_sprite = pygame.transform.scale(player_img, (50, 50))
+    player_x = screen_width // 2 - 25
+    player_y = screen_height - 100
+
+    
     while gameplay_running:
-        screenblit(game_bg, (0, 0))
+        screen.blit(game_bg, (0, 0))
+
+        
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game_running = False
+
+
+
 
 def tutorial():
     print("Tutorial button clicked")
