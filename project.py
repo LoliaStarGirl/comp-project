@@ -42,6 +42,10 @@ menu_background = pygame.transform.scale(menu_background, (screen_width, screen_
 game_bg = pygame.image.load('game bg.png')
 game_bg = pygame.transform.scale(game_bg, (screen_width, screen_height))
 
+#other global images
+back_img = pygame.image.load('back button.png')
+back_img = pygame.transform.scale(back_img, (50, 50))
+
 #scaling for transition images
 curtain1 = pygame.image.load('menu.png')
 curtain2 = pygame.image.load('transition.png')
@@ -225,20 +229,26 @@ def main_menu():
 def play_game():
     gameplay_running = True
 
+    #player sprite set up
     player_img = pygame.image.load('player.png')
-    player_sprite = pygame.transform.scale(player_img, (50, 50))
-    player_x = screen_width // 2 - 25
-    player_y = screen_height - 100
+    player_sprite = pygame.transform.scale(player_img, (200, 250))
+    player_x = screen_width // 2 - 50 #sets the postion of the player on the screen
+    player_y = screen_height // 3 - 25
 
-    
+    #pause button set up
+    pause_img = pygame.image.load('pause unclicked.png')
+    pause_sprite = pygame.transform.scale(pause_img, (50, 50))
+    pause_rect = pause_img.get_rect(topright=(screen_width - 20, 20))
+
     while gameplay_running:
         screen.blit(game_bg, (0, 0))
-
+        screen.blit(pause_sprite, (pause_rect))
         
+        screen.blit(player_sprite, (player_x, player_y))
         pygame.display.flip()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                game_running = False
+                gameplay_running = False
 
 
 
@@ -260,7 +270,7 @@ def settings():
 
         # title + back button
         settings_text = header_font.render("Settings", True, YELLOW)
-        back_text = smaller_font.render("Back", True, YELLOW)
+        back_rect = back_img.get_rect(topleft=(20, 20))
 
         title_w = screen_width // 2 - settings_text.get_width() // 2
         title_h = 60
@@ -268,7 +278,7 @@ def settings():
         back_h = 20
 
         screen.blit(settings_text, (title_w, title_h))
-        screen.blit(back_text, (back_w, back_h))
+        screen.blit(back_img, (back_w, back_h))
 
         #draw sliders 
         bg_rect = draw_slider(slider_x, 250, slider_width, slider_height, bg_music_volume, "Background Music")
@@ -285,17 +295,16 @@ def settings():
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
-                back_rect = back_text.get_rect(topleft=(back_w, back_h))
-                if back_rect.collidepoint(mouse_x, mouse_y):
+                if back_rect.collidepoint(event.pos):
                     settings_running = False  # go back
 
-                elif bg_rect.collidepoint(mouse_x, mouse_y):
+                elif bg_rect.collidepoint(event.pos):
                     dragging = 'bg'
-                elif event_rect.collidepoint(mouse_x, mouse_y):
+                elif event_rect.collidepoint(event.pos):
                     dragging = 'event'
-                elif audience_rect.collidepoint(mouse_x, mouse_y):
+                elif audience_rect.collidepoint(event.pos):
                     dragging = 'audience'
-                elif master_rect.collidepoint(mouse_x, mouse_y):
+                elif master_rect.collidepoint(event.pos):
                     dragging = 'master'
 
             elif event.type == pygame.MOUSEBUTTONUP:
