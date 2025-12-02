@@ -232,8 +232,14 @@ def play_game():
     #player sprite set up
     player_img = pygame.image.load('player.png')
     player_sprite = pygame.transform.scale(player_img, (200, 250))
-    player_x = screen_width // 2 - 50 #sets the postion of the player on the screen
+    player_x = screen_width // 2 - 110 #sets the postion of the player on the screen
     player_y = screen_height // 3 - 25
+
+    #mic set up
+    mic_img = pygame.image.load('mic.png')
+    mic_sprite = pygame.transform.scale(mic_img, (320, 300))
+    mic_x = screen_width // 2 - 140
+    mic_y = screen_height // 3 - 50
 
     #pause button set up
     pause_img = pygame.image.load('pause unclicked.png')
@@ -243,8 +249,10 @@ def play_game():
     while gameplay_running:
         screen.blit(game_bg, (0, 0))
         screen.blit(pause_sprite, (pause_rect))
-        
         screen.blit(player_sprite, (player_x, player_y))
+        screen.blit(mic_sprite, (mic_x, mic_y))
+
+        
         pygame.display.flip()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
