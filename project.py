@@ -244,7 +244,9 @@ def play_game():
     #pause button set up
     pause_img = pygame.image.load('pause unclicked.png')
     pause_sprite = pygame.transform.scale(pause_img, (50, 50))
-    pause_rect = pause_img.get_rect(topright=(screen_width - 20, 20))
+    pause_rect = pause_img.get_rect(topleft=(20, 20))
+    #pause_w = 20
+    #pause_h = 20
 
     while gameplay_running:
         screen.blit(game_bg, (0, 0))
@@ -252,7 +254,28 @@ def play_game():
         screen.blit(player_sprite, (player_x, player_y))
         screen.blit(mic_sprite, (mic_x, mic_y))
 
-        
+        #score display and setup
+        totalscore = 0
+        score_text = smaller_font.render(f"Score: {totalscore}", True, YELLOW)
+        score_x = screen_width // 2 - score_text.get_width() // 2
+        score_y = 20
+
+        screen. blit(score_text, (score_x, score_y))
+
+        #boost bar and setup
+        boostlevel = 0
+        max_boost = 100
+
+        bar_width = 200
+        bar_height = 20
+        bar_x = screen_width //2  - bar_width // 2
+        bar_y = 65
+
+        pygame.draw.rect(screen, YELLOW, (bar_x, bar_y, bar_width, bar_height), 3)
+        boostbar = (boostlevel / max_boost) * bar_width
+        pygame.draw.rect(screen, YELLOW, (bar_x, bar_y, boostbar, bar_height))
+
+
         pygame.display.flip()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
