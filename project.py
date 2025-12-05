@@ -78,6 +78,18 @@ startup_jokes2 = [
     "To get to the other side!"
 ]
 
+#opening jokes
+opening_lines = [
+    "So… I walked in here and immediately regretted it.",
+    "Hey, how are ya?"
+    "Good evening everyone… or at least the three people pretending to listen.",
+    "They told me to 'act natural', so here I am. Awkward as heck.",
+    "I promised myself I would NOt cry on stage today… no guarantees.",
+    "Thanks for being here. My mum said nobody would come.",
+    "I love the energy in here… it's hiding, but I can feel it."
+]
+
+
 #sliders for volume
 def draw_slider(x, y, width, height, value, label):
     # Draw label
@@ -98,6 +110,11 @@ def draw_slider(x, y, width, height, value, label):
 joke_index = random.randint(0, len(startup_jokes1) - 1)
 selected_joke = startup_jokes1[joke_index]
 selected_joke2 = startup_jokes2[joke_index]
+
+#timer
+timer = 10
+timer_running = False
+timer_update = pygame.time.get_ticks()
 
 # loading screen
 def loading_screen():
@@ -226,7 +243,36 @@ def main_menu():
             if event.type == pygame.QUIT:
                 menu_running = False
 
+#starts the timer each new round
+def start_timer():
+    global timer, timer_running, timer_update
+    timer = 10
+    timer_running = True
+    timer_update = pygame.time.get_ticks()
+
+    #timer countdown or exit round
+def update_timer():
+    global timer, timer_running, timer_update
+        
+    if not timer_running:
+        return #exits function if timer is not running
+        
+    current_time = pygame.time.get_ticks()
+    
+    #check if 1 second has passed then update timer
+    if current_time - timer_update >= 1000:
+        timer -= 1
+        timer_update = current_time
+        
+    #exit if timer is zero
+    if timer <= 0:
+        timer == 0
+        print("You're too slow!")
+        timer_running = False
+    
+
 def play_game():
+    global timer_running
     gameplay_running = True
 
     #player sprite set up
@@ -248,24 +294,29 @@ def play_game():
     #pause_w = 20
     #pause_h = 20
 
+    #score display and setup
+    totalscore = 0
+
+    #boost bar and setup
+    boostlevel = 0
+    max_boost = 100
+
+    
+    start_timer()
+
     while gameplay_running:
         screen.blit(game_bg, (0, 0))
         screen.blit(pause_sprite, (pause_rect))
         screen.blit(player_sprite, (player_x, player_y))
         screen.blit(mic_sprite, (mic_x, mic_y))
 
-        #score display and setup
-        totalscore = 0
+        #score display
         score_text = smaller_font.render(f"Score: {totalscore}", True, YELLOW)
         score_x = screen_width // 2 - score_text.get_width() // 2
         score_y = 20
+        screen.blit(score_text, (score_x, score_y))
 
-        screen. blit(score_text, (score_x, score_y))
-
-        #boost bar and setup
-        boostlevel = 0
-        max_boost = 100
-
+        #bar display
         bar_width = 200
         bar_height = 20
         bar_x = screen_width //2  - bar_width // 2
@@ -275,6 +326,45 @@ def play_game():
         boostbar = (boostlevel / max_boost) * bar_width
         pygame.draw.rect(screen, YELLOW, (bar_x, bar_y, boostbar, bar_height))
 
+        def draw_timer():
+            timer_text = smaller_font.render(str(timer), True, YELLOW)
+            timer_x = screen_width - timer_text.get_width() - 20
+            timer_y = 20
+            screen.blit(timer_text, (timer_x, timer_y))
+
+        update_timer()
+        draw_timer()
+
+        #draw joke boxes
+        box_margin = 20
+        box_width = (screen_width - (3 * box_margin)) // 2
+        box_height = 75
+
+        # top row y
+        top_y = 400
+        # bottom row y
+        bottom_y = top_y + box_height + box_margin
+
+        # box positions
+        box_positions = [
+            (box_margin, top_y),                        # Box 1
+            (box_margin * 2 + box_width, top_y),        # Box 2
+            (box_margin, bottom_y),                     # Box 3
+            (box_margin * 2 + box_width, bottom_y)      # Box 4
+        ]       
+
+        # Draw all 4 boxes
+        for i, (x, y) in enumerate(box_positions):
+            pygame.draw.rect(screen, YELLOW, (x, y, box_width, box_height), 3)
+
+        # render joke text inside
+        joke_text_surface = smaller_font.render(opening_lines[i], True, YELLOW)
+
+        # center text inside each box
+        text_x = x + (box_width - joke_text_surface.get_width()) // 2
+        text_y = y + (box_height - joke_text_surface.get_height()) // 2
+
+        screen.blit(joke_text_surface, (text_x, text_y))
 
         pygame.display.flip()
         for event in pygame.event.get():
