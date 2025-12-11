@@ -2,6 +2,7 @@ import pygame
 import sys
 import time
 import random
+import textwrap
 
 pygame.init()
 
@@ -33,6 +34,7 @@ LESS_PALE_YELLOW = (255, 255, 150)
 font = pygame.font.Font('font.otf', 40)
 header_font = pygame.font.Font('font.otf', 100)
 smaller_font = pygame.font.Font('font.otf', 30)
+even_smaller_font = pygame.font.Font('font.otf', 20)
 
 #background
 loading_background = pygame.image.load('loading.png')
@@ -84,7 +86,7 @@ opening_lines = [
     "Hey, how are ya?"
     "Good evening everyone… or at least the three people pretending to listen.",
     "They told me to 'act natural', so here I am. Awkward as heck.",
-    "I promised myself I would NOt cry on stage today… no guarantees.",
+    "I promised myself I would NOT cry on stage today… no guarantees.",
     "Thanks for being here. My mum said nobody would come.",
     "I love the energy in here… it's hiding, but I can feel it."
 ]
@@ -301,7 +303,8 @@ def play_game():
     boostlevel = 0
     max_boost = 100
 
-    
+    #opening joke selection
+    joke = random.sample(opening_lines, 4)
     start_timer()
 
     while gameplay_running:
@@ -335,10 +338,10 @@ def play_game():
         update_timer()
         draw_timer()
 
-        #draw joke boxes
+        # joke boxe dimensions
         box_margin = 20
         box_width = (screen_width - (3 * box_margin)) // 2
-        box_height = 75
+        box_height = 60
 
         # top row y
         top_y = 400
@@ -347,24 +350,28 @@ def play_game():
 
         # box positions
         box_positions = [
-            (box_margin, top_y),                        # Box 1
-            (box_margin * 2 + box_width, top_y),        # Box 2
-            (box_margin, bottom_y),                     # Box 3
-            (box_margin * 2 + box_width, bottom_y)      # Box 4
+            (box_margin, top_y),                     # box1
+            (box_margin * 2 + box_width, top_y),     # box2
+            (box_margin, bottom_y),                  # box3
+            (box_margin * 2 + box_width, bottom_y)   # box4
         ]       
 
         # Draw all 4 boxes
         for i, (x, y) in enumerate(box_positions):
             pygame.draw.rect(screen, YELLOW, (x, y, box_width, box_height), 3)
+            
+            #wrap jokes
+            wrapped = textwrap.wrap(joke[i], width = 100) 
 
-        # render joke text inside
-        joke_text_surface = smaller_font.render(opening_lines[i], True, YELLOW)
+            text_y = y + 10
+            for x in wrapped:
+                # render joke text inside
+                joke_text = even_smaller_font.render(joke[i], True, YELLOW)
+                # center text inside each box
+                text_x = x + 10
+                screen.blit(joke_text, (text_x, text_y))
+                text_y += joke_text.get_height() + 2
 
-        # center text inside each box
-        text_x = x + (box_width - joke_text_surface.get_width()) // 2
-        text_y = y + (box_height - joke_text_surface.get_height()) // 2
-
-        screen.blit(joke_text_surface, (text_x, text_y))
 
         pygame.display.flip()
         for event in pygame.event.get():
