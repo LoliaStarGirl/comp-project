@@ -10,6 +10,10 @@ pygame.init()
 pygame.mixer.music.load('bg music.mp3')
 pygame.mixer.music.set_volume(0.5)  # range is 0.0 to 1.0
 pygame.mixer.music.play(-1)
+clap = pygame.mixer.Sound('cheer and clap.mp3')
+boo = pygame.mixer.Sound('boo.mp3')
+laugh = pygame.mixer.Sound('laugh.mp3')
+heavy_laugh = pygame.mixer.Sound('extreme laughter.mp3')
 
 #volume for music
 master_volume = 0.5
@@ -83,7 +87,7 @@ startup_jokes2 = [
 #opening jokes
 opening_lines = [
     "So… I walked in here and immediately regretted it.",
-    "Hey, how are ya?"
+    "Hey, how are ya?",
     "Good evening everyone… or at least the three people pretending to listen.",
     "They told me to 'act natural', so here I am. Awkward as heck.",
     "I promised myself I would NOT cry on stage today… no guarantees.",
@@ -91,6 +95,9 @@ opening_lines = [
     "I love the energy in here… it's hiding, but I can feel it."
 ]
 
+jokes = [
+    
+]
 
 #sliders for volume
 def draw_slider(x, y, width, height, value, label):
@@ -361,17 +368,36 @@ def play_game():
             pygame.draw.rect(screen, YELLOW, (x, y, box_width, box_height), 3)
             
             #wrap jokes
-            wrapped = textwrap.wrap(joke[i], width = 100) 
+            wrapped = textwrap.wrap(joke[i], width = 40) 
 
-            text_y = y + 10
-            for x in wrapped:
+           # pick right padding based on if wrapped or not
+            if len(wrapped) > 1:
+                text_y = y + 5       
+            else:
+                 text_y = y + 10     
+            for line in wrapped:
                 # render joke text inside
-                joke_text = even_smaller_font.render(joke[i], True, YELLOW)
+                joke_text = even_smaller_font.render(line, True, YELLOW)
                 # center text inside each box
-                text_x = x + 10
+                text_x = x + (box_width - joke_text.get_width()) // 2
                 screen.blit(joke_text, (text_x, text_y))
-                text_y += joke_text.get_height() + 2
+                text_y += joke_text.get_height() + 1.5
 
+        mouse = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()[0]
+
+        if click:  
+            for i, (x, y) in enumerate(box_positions):
+                box_rect = pygame.Rect(x, y, box_width, box_height)
+
+                if box_rect.collidepoint(mouse):
+                    selected_index = i
+                    joke_selected = joke[selected_index]
+
+                    print("You selected:", joke_selected)
+
+                    # play clap sound for opening jokes
+                    clap.play()
 
         pygame.display.flip()
         for event in pygame.event.get():
