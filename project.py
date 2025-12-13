@@ -95,9 +95,9 @@ opening_lines = [
     "I love the energy in here… it's hiding, but I can feel it."
 ]
 
-jokes = [
+#jokes = [
     
-]
+#]
 
 #sliders for volume
 def draw_slider(x, y, width, height, value, label):
