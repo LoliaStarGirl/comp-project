@@ -14,8 +14,10 @@ clap = pygame.mixer.Sound('cheer and clap.mp3')
 boo = pygame.mixer.Sound('boo.mp3')
 laugh = pygame.mixer.Sound('laugh.mp3')
 heavy_laugh = pygame.mixer.Sound('extreme laughter.mp3')
+disappointed = pygame.mixer.Sound('disappointed.mp3')
+fail = pygame.mixer.Sound('fail trumpet.mp3')
 
-#volume for music
+#volume for music  
 master_volume = 0.5
 bg_music_volume = 0.5
 event_volume = 0.5
@@ -95,9 +97,44 @@ opening_lines = [
     "I love the energy in here… it's hiding, but I can feel it."
 ]
 
-#jokes = [
-    
-#]
+joke_categories = {
+    "dad": [
+        "I’m afraid for the calendar. Its days are numbered.",
+        "Why don’t eggs tell jokes? They’d crack each other up.",
+        "I only know 25 letters of the alphabet. I don’t know Y.",
+        "Why did the scarecrow win an award? Because he was outstanding in his field."
+    ],
+
+    "sarcastic": [
+        "Oh great. Another meeting that could’ve been an email.",
+        "I love deadlines. I love the whooshing sound they make as they fly by.",
+        "Yeah, because that went *exactly* as planned.",
+        "I’m not lazy. I’m on energy-saving mode."
+    ],
+
+    "hilarious": [
+        "I tried exercising but I kept losing my balance—turns out the treadmill was off.",
+        "My phone battery lasts longer than my motivation.",
+        "I told my computer I needed a break and it froze.",
+        "I started a diet, but I keep losing my snacks."
+    ]
+}
+
+jokes = [
+    "Did you hear they arrested the devil? Yeah, they got him on possession.",
+    "What did one DNA say to the other DNA? “Do these genes make me look fat?”",
+    "It’s okay if you don’t like me. Not everyone has good taste.",
+    "My IQ test results came back. They were negative.",
+    "What do you get when you cross a polar bear with a seal? A polar bear.",
+    "Why can’t you trust an atom? Because they make up literally everything.",
+    "At least your mum thinks you're pretty.",
+    "Why was six afraid of seven? Because seven eight nine.",
+    "What do you call a hippie’s wife? Mississippi.",
+    "What’s the difference between an outlaw and an in-law? Outlaws are wanted.",
+    "According to my neighbour's diary, i have boundary issues??",
+    "Scientists have recently discovered a food that greatly reduces sex drive. It’s called wedding cake.",
+    "Before you marry a person, you should first make them use a computer with a slow Internet connection to see who they really are."
+]
 
 #sliders for volume
 def draw_slider(x, y, width, height, value, label):
@@ -276,7 +313,7 @@ def update_timer():
     #exit if timer is zero
     if timer <= 0:
         timer == 0
-        print("You're too slow!")
+        disappointed.play()
         timer_running = False
     
 
@@ -310,9 +347,20 @@ def play_game():
     boostlevel = 0
     max_boost = 100
 
+    #some variables
+    joke_clicked = False
+    using_openings = True
+
     #opening joke selection
-    joke = random.sample(opening_lines, 4)
+    def gen_jokes():
+        if using_openings:
+            joke = random.sample(opening_lines, 4)
+        else:
+            joke = random.sample(jokes, 4)
+        return joke
+
     start_timer()
+    joke = gen_jokes()
 
     while gameplay_running:
         screen.blit(game_bg, (0, 0))
@@ -329,7 +377,7 @@ def play_game():
         #bar display
         bar_width = 200
         bar_height = 20
-        bar_x = screen_width //2  - bar_width // 2
+        bar_x = screen_width // 2  - bar_width // 2
         bar_y = 65
 
         pygame.draw.rect(screen, YELLOW, (bar_x, bar_y, bar_width, bar_height), 3)
@@ -383,14 +431,16 @@ def play_game():
                 screen.blit(joke_text, (text_x, text_y))
                 text_y += joke_text.get_height() + 1.5
 
+        #mouse button click
         mouse = pygame.mouse.get_pos()
         click = pygame.mouse.get_pressed()[0]
 
-        if click:  
+        if click and not joke_clicked:  
             for i, (x, y) in enumerate(box_positions):
                 box_rect = pygame.Rect(x, y, box_width, box_height)
 
                 if box_rect.collidepoint(mouse):
+                    joke_clicked = True
                     selected_index = i
                     joke_selected = joke[selected_index]
 
@@ -398,6 +448,12 @@ def play_game():
 
                     # play clap sound for opening jokes
                     clap.play()
+                
+                    if using_openings:
+                        using_openings = False
+                        joke = gen_jokes()
+                        joke_clicked = False
+                        start_timer()
 
         pygame.display.flip()
         for event in pygame.event.get():
