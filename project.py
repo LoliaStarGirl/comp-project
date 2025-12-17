@@ -102,39 +102,42 @@ joke_categories = {
         "I’m afraid for the calendar. Its days are numbered.",
         "Why don’t eggs tell jokes? They’d crack each other up.",
         "I only know 25 letters of the alphabet. I don’t know Y.",
-        "Why did the scarecrow win an award? Because he was outstanding in his field."
+        "Why did the scarecrow win an award? Because he was outstanding in his field.",
+        "Did you hear they arrested the devil? Yeah, they got him on possession.",
+        "What did one DNA say to the other DNA? “Do these genes make me look fat?”",
     ],
 
+     "pun": [
+        "I was wondering why the ball kept getting bigger… then it hit me.",
+        "I tried to catch fog yesterday. Mist.",
+        "I used to be a baker, but I couldn’t make enough dough."
+        "Why can’t you trust an atom? Because they make up literally everything.",
+        "I’m reading a book about anti-gravity. It’s impossible to put down.",
+        "I would tell you a construction joke, but I’m still working on it."
+     ],
+
     "sarcastic": [
-        "Oh great. Another meeting that could’ve been an email.",
+        "Oh great. Another meeting that could've been an email.",
         "I love deadlines. I love the whooshing sound they make as they fly by.",
         "Yeah, because that went *exactly* as planned.",
-        "I’m not lazy. I’m on energy-saving mode."
+        "I’m not lazy. I’m on energy-saving mode.",
+        "It’s okay if you don’t like me. Not everyone has good taste.",
+        "At least your mum thinks you're pretty.",
+        "anyone who calls me lazy? I’m not lazy. I’m on energy-saving mode."
     ],
 
     "hilarious": [
         "I tried exercising but I kept losing my balance—turns out the treadmill was off.",
         "My phone battery lasts longer than my motivation.",
         "I told my computer I needed a break and it froze.",
-        "I started a diet, but I keep losing my snacks."
+        "I started a diet, but I keep losing my snacks.",
+        "My IQ test results came back. They were negative."
+        "According to my neighbour's diary, i have boundary issues??",
+        "What do you get when you cross a polar bear with a seal? A polar bear.",
+        "Why was six afraid of seven? Because seven eight nine."
     ]
 }
 
-jokes = [
-    "Did you hear they arrested the devil? Yeah, they got him on possession.",
-    "What did one DNA say to the other DNA? “Do these genes make me look fat?”",
-    "It’s okay if you don’t like me. Not everyone has good taste.",
-    "My IQ test results came back. They were negative.",
-    "What do you get when you cross a polar bear with a seal? A polar bear.",
-    "Why can’t you trust an atom? Because they make up literally everything.",
-    "At least your mum thinks you're pretty.",
-    "Why was six afraid of seven? Because seven eight nine.",
-    "What do you call a hippie’s wife? Mississippi.",
-    "What’s the difference between an outlaw and an in-law? Outlaws are wanted.",
-    "According to my neighbour's diary, i have boundary issues??",
-    "Scientists have recently discovered a food that greatly reduces sex drive. It’s called wedding cake.",
-    "Before you marry a person, you should first make them use a computer with a slow Internet connection to see who they really are."
-]
 
 #sliders for volume
 def draw_slider(x, y, width, height, value, label):
@@ -351,13 +354,29 @@ def play_game():
     joke_clicked = False
     using_openings = True
 
+    #jokes to select from
+    available_jokes = {
+        category: joke_categories[category].copy()
+        for category in joke_categories
+    }
+
     #opening joke selection
     def gen_jokes():
         if using_openings:
-            joke = random.sample(opening_lines, 4)
+            return random.sample(opening_lines, 4)
         else:
-            joke = random.sample(jokes, 4)
-        return joke
+            joke_list = []
+
+            #select one joke from each category then remove the selected joke from available jokes
+            for category in joke_categories:
+                if available_jokes[category]:
+                    chosen = random.choice(available_jokes[category])
+                    available_jokes[category].remove(chosen)
+                    joke_list.append(chosen)
+                else:
+                    joke_list.append("Nah bro you're out😹")
+                   
+        return joke_list
 
     start_timer()
     joke = gen_jokes()
@@ -443,6 +462,8 @@ def play_game():
                     joke_clicked = True
                     selected_index = i
                     joke_selected = joke[selected_index]
+                    categories = list(joke_categories.keys())
+                    selected_category = categories[selected_index]
 
                     print("You selected:", joke_selected)
 
