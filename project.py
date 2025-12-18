@@ -10,6 +10,12 @@ pygame.init()
 pygame.mixer.music.load('bg music.mp3')
 pygame.mixer.music.set_volume(0.5)  # range is 0.0 to 1.0
 pygame.mixer.music.play(-1)
+
+#other channels
+audience_channel = pygame.mixer.Channel(0)
+event_channel = pygame.mixer.Channel(1)
+
+#audience reactions
 clap = pygame.mixer.Sound('cheer and clap.mp3')
 boo = pygame.mixer.Sound('boo.mp3')
 laugh = pygame.mixer.Sound('laugh.mp3')
@@ -23,6 +29,9 @@ bg_music_volume = 0.5
 event_volume = 0.5
 audience_volume = 0.5
 
+#volume fr channels
+audience_channel.set_volume(audience_volume * master_volume)
+event_channel.set_volume(event_volume * master_volume)
 
 # screen
 screen_width = 800
@@ -99,9 +108,9 @@ opening_lines = [
 
 joke_categories = {
     "dad": [
-        "I’m afraid for the calendar. Its days are numbered.",
-        "Why don’t eggs tell jokes? They’d crack each other up.",
-        "I only know 25 letters of the alphabet. I don’t know Y.",
+        "I'm afraid for the calendar. Its days are numbered.",
+        "Why don't eggs tell jokes? They'd crack each other up.",
+        "I only know 25 letters of the alphabet. I don't know Y.",
         "Why did the scarecrow win an award? Because he was outstanding in his field.",
         "Did you hear they arrested the devil? Yeah, they got him on possession.",
         "What did one DNA say to the other DNA? “Do these genes make me look fat?”",
@@ -110,20 +119,20 @@ joke_categories = {
      "pun": [
         "I was wondering why the ball kept getting bigger… then it hit me.",
         "I tried to catch fog yesterday. Mist.",
-        "I used to be a baker, but I couldn’t make enough dough."
-        "Why can’t you trust an atom? Because they make up literally everything.",
-        "I’m reading a book about anti-gravity. It’s impossible to put down.",
-        "I would tell you a construction joke, but I’m still working on it."
+        "I used to be a baker, but I couldn't make enough dough.",
+        "Why can't you trust an atom? Because they make up literally everything.",
+        "I'm reading a book about anti-gravity. It's impossible to put down.",
+        "I would tell you a construction joke, but I'm still working on it."
      ],
 
     "sarcastic": [
         "Oh great. Another meeting that could've been an email.",
         "I love deadlines. I love the whooshing sound they make as they fly by.",
         "Yeah, because that went *exactly* as planned.",
-        "I’m not lazy. I’m on energy-saving mode.",
-        "It’s okay if you don’t like me. Not everyone has good taste.",
+        "I'm not lazy. I'm on energy-saving mode.",
+        "It's okay if you don't like me. Not everyone has good taste.",
         "At least your mum thinks you're pretty.",
-        "anyone who calls me lazy? I’m not lazy. I’m on energy-saving mode."
+        "anyone who calls me lazy? I'm not lazy. I'm on energy-saving mode."
     ],
 
     "hilarious": [
@@ -131,7 +140,7 @@ joke_categories = {
         "My phone battery lasts longer than my motivation.",
         "I told my computer I needed a break and it froze.",
         "I started a diet, but I keep losing my snacks.",
-        "My IQ test results came back. They were negative."
+        "My IQ test results came back. They were negative.",
         "According to my neighbour's diary, i have boundary issues??",
         "What do you get when you cross a polar bear with a seal? A polar bear.",
         "Why was six afraid of seven? Because seven eight nine."
@@ -230,7 +239,7 @@ def text_button(text, x, y, font, colour, hover_colour, action=None):
         # detect left click
         if click[0] == 1 and action is not None:
             pygame.time.delay(150)  # small delay to prevent multiple triggers
-            action()  # <-- actually calls the function here
+            action()  # calls the function here
 
     screen.blit(text_surface, text_rect)
 
@@ -263,6 +272,22 @@ def curtain_transition(next_screen):
         pygame.display.flip()
         pygame.time.delay(500)
 
+#function to map joke pcked to score
+def evaluate_joke(joke_type):
+    if joke_type == "dad":
+        chance = random.randint(1, 100)
+        if chance > 60:
+            return 40
+        else:
+            return -20
+    elif joke_type == "hilarious":
+        return 50
+    elif joke_type == "sarcastic":
+        return 20
+    elif joke_type == "pun":
+        return 15
+
+
 def main_menu():
     menu_running = True
     while menu_running:
@@ -294,14 +319,15 @@ def main_menu():
 
 #starts the timer each new round
 def start_timer():
-    global timer, timer_running, timer_update
+    global timer, timer_running, timer_update, joke_clicked
     timer = 10
     timer_running = True
+    joke_clicked = False
     timer_update = pygame.time.get_ticks()
 
     #timer countdown or exit round
 def update_timer():
-    global timer, timer_running, timer_update
+    global timer, timer_running, timer_update, joke_clicked, using_openings
         
     if not timer_running:
         return #exits function if timer is not running
@@ -315,10 +341,15 @@ def update_timer():
         
     #exit if timer is zero
     if timer <= 0:
-        timer == 0
-        disappointed.play()
+        timer = 0
         timer_running = False
-    
+
+        if not joke_clicked:
+            audience_channel.play(disappointed, 0, 3000)
+            if using_openings:
+                using_openings = False
+                start_timer()
+            
 
 def play_game():
     global timer_running
@@ -371,7 +402,6 @@ def play_game():
             for category in joke_categories:
                 if available_jokes[category]:
                     chosen = random.choice(available_jokes[category])
-                    available_jokes[category].remove(chosen)
                     joke_list.append(chosen)
                 else:
                     joke_list.append("Nah bro you're out😹")
@@ -468,13 +498,20 @@ def play_game():
                     print("You selected:", joke_selected)
 
                     # play clap sound for opening jokes
-                    clap.play()
+                    audience_channel.play(clap)
                 
                     if using_openings:
                         using_openings = False
                         joke = gen_jokes()
                         joke_clicked = False
                         start_timer()
+
+                    if not using_openings:
+                        start_timer()
+                        score_attained = evaluate_joke(selected_category)
+                        totalscore += score_attained
+                        if joke_selected in available_jokes[selected_category]:
+                            available_jokes[selected_category].remove(joke_selected)
 
         pygame.display.flip()
         for event in pygame.event.get():
@@ -488,7 +525,7 @@ def tutorial():
     print("Tutorial button clicked")
 
 def settings():
-    global master_volume, bg_music_volume, event_music_volume, audience_volume
+    global master_volume, bg_music_volume, event_volume, audience_volume
 
     dragging = None
     settings_running = True
@@ -548,12 +585,17 @@ def settings():
                     bg_music_volume = rel_x
                     pygame.mixer.music.set_volume(bg_music_volume * master_volume)
                 elif dragging == 'event':
-                    event_music_volume = rel_x
+                    event_volume = rel_x
+                    event_channel.set_volume(event_volume * master_volume)
                 elif dragging == 'audience':
                     audience_volume = rel_x
+                    audience_channel.set_volume(audience_volume * master_volume)
                 elif dragging == 'master':
                     master_volume = rel_x
+
                     pygame.mixer.music.set_volume(bg_music_volume * master_volume)
+                    event_channel.set_volume(event_volume * master_volume)
+                    audience_channel.set_volume(audience_volume * master_volume)
 
 loading_screen()
 main_menu()
